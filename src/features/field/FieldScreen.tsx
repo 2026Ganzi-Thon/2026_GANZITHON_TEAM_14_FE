@@ -19,6 +19,8 @@ interface FieldScreenProps {
     onPat: () => void;
     /** 친구 양을 탭 또는 멀어짐 배너를 탭: 다가가기 시트 (FE-B) */
     onReachOut: (sheep: PastureSheep) => void;
+    /** 탭바의 한마디·목도리 시트 결과를 내 양에 반영 (FE-B) */
+    onMineChange: (patch: Partial<PastureSheep>) => void;
 }
 
 /**
@@ -32,6 +34,7 @@ export function FieldScreen({
     notice,
     onPat,
     onReachOut,
+    onMineChange,
 }: FieldScreenProps) {
     const placements = useMemo(() => layoutSheep(pasture.sheep), [pasture.sheep]);
 
@@ -72,7 +75,12 @@ export function FieldScreen({
             )}
 
             <div className="relative z-[300]">
-                <FieldTabBar pastureId={pastureId} />
+                <FieldTabBar
+                    pastureId={pastureId}
+                    mine={pasture.sheep.find((sheep) => sheep.mine)}
+                    scarves={pasture.myScarves}
+                    onMineChange={onMineChange}
+                />
             </div>
         </main>
     );

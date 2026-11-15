@@ -170,6 +170,7 @@ function FieldContent({
                 notice={notice}
                 onPat={pat}
                 onReachOut={({ id }) => setReachOutId(id)}
+                onMineChange={updateMine}
             />
             <ReachOutSheet
                 sheep={pasture.sheep.find(({ id }) => id === reachOutId) ?? null}
