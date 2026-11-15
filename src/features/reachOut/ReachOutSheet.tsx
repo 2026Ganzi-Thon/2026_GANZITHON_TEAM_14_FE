@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ERROR_CODE, toApiError } from '@/api/errors';
 import { sendScarf } from '@/api/sheep';
 import type { PastureSheep } from '@/api/types';
+import { sheepImageSrc } from '@/features/field/assets';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 import { SheetNotice } from '@/shared/ui/SheetNotice';
 import { useCopy } from '@/shared/useCopy';
@@ -59,16 +60,17 @@ export function ReachOutSheet({
         <BottomSheet open={sheep !== null} onClose={onClose} label="다가가기">
             {sheep && (
                 <>
-                    <p className="font-batang text-[14px] leading-7 font-bold text-leaf">
-                        조금 멀어진 친구
+                    {/* 들판에서 가장자리가 아닌 친구 양을 눌러도 열린다. 부제는 멀어진 친구일 때만 */}
+                    <p className="min-h-7 font-batang text-[14px] leading-7 font-bold text-leaf">
+                        {sheep.distance === 'EDGE' && '조금 멀어진 친구'}
                     </p>
                     <h2 className="text-[20px] leading-[1.36] font-semibold tracking-[-0.2px] text-[#0f0f10]">
                         {sheep.name}에게 다가가기
                     </h2>
 
-                    {/* 멀어짐(가장자리) 포즈, 친구 털 색 (Figma Design System 4:5) */}
+                    {/* 멀어짐(가장자리) 포즈, 친구 털 색. 들판(FE-A)과 같은 에셋 */}
                     <img
-                        src={`/assets/sheep-${sheep.woolColor.toLowerCase()}-edge.webp`}
+                        src={sheepImageSrc(sheep.woolColor, 'edge')}
                         alt=""
                         width={150}
                         height={118}
