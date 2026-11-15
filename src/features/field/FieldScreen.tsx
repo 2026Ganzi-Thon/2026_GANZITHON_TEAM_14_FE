@@ -6,6 +6,7 @@ import { layoutSheep } from '@/features/field/layout';
 import { SheepSprite } from '@/features/field/SheepSprite';
 import { FieldTabBar } from '@/features/fieldNav/FieldTabBar';
 import { PastureTitle } from '@/features/fieldNav/PastureTitle';
+import { ReachOutBanner } from '@/features/reachOut/ReachOutBanner';
 
 interface FieldScreenProps {
     pastureId: string;
@@ -18,14 +19,6 @@ interface FieldScreenProps {
     onPat: () => void;
     /** 친구 양을 탭 또는 멀어짐 배너를 탭: 다가가기 시트 (FE-B) */
     onReachOut: (sheep: PastureSheep) => void;
-}
-
-/** 이름 뒤에 붙는 '이/가'. 받침이 있으면 '이'. */
-function withSubjectParticle(name: string) {
-    const last = name.charCodeAt(name.length - 1);
-    const isHangul = last >= 0xac00 && last <= 0xd7a3;
-    const hasBatchim = isHangul && (last - 0xac00) % 28 !== 0;
-    return `${name}${hasBatchim ? '이' : '가'}`;
 }
 
 /**
@@ -41,7 +34,6 @@ export function FieldScreen({
     onReachOut,
 }: FieldScreenProps) {
     const placements = useMemo(() => layoutSheep(pasture.sheep), [pasture.sheep]);
-    const edgeFriends = pasture.sheep.filter((item) => !item.mine && item.distance === 'EDGE');
 
     return (
         <main
@@ -53,36 +45,10 @@ export function FieldScreen({
                 <PastureTitle pastureId={pastureId} name={pasture.name ?? '이름 없는 들판'} />
             </div>
 
-            {edgeFriends.length > 0 && (
-                <button
-                    type="button"
-                    onClick={() => onReachOut(edgeFriends[0])}
-                    className="absolute top-[calc(env(safe-area-inset-top,0px)+120px)] right-6 left-6 z-[300] flex cursor-pointer items-center justify-between rounded-[20px] bg-cream px-6 py-[15px] text-left shadow-sm focus-visible:outline-2 focus-visible:outline-primary"
-                >
-                    <span>
-                        <span className="block text-sm leading-[18px] font-bold">
-                            {edgeFriends.length === 1
-                                ? withSubjectParticle(edgeFriends[0].name)
-                                : `${edgeFriends[0].name} 외 ${edgeFriends.length - 1}마리가`}{' '}
-                            조금 멀리 갔어요
-                        </span>
-                        <span className="mt-1.5 block text-xs leading-none text-primary">
-                            천천히 안부를 건네볼까요?
-                        </span>
-                    </span>
-                    <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        className="size-6 shrink-0 stroke-primary"
-                        fill="none"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M4 12h16M14 6l6 6-6 6" />
-                    </svg>
-                </button>
-            )}
+            {/* 멀어짐 배너(FE-B reachOut): 가장자리 친구마다 한 장. Figma처럼 제목 아래 18px */}
+            <div className="absolute top-[calc(env(safe-area-inset-top,0px)+123px)] right-6 left-6 z-[300]">
+                <ReachOutBanner sheep={pasture.sheep} onSelect={onReachOut} />
+            </div>
 
             {placements.map((placement) => (
                 <SheepSprite
