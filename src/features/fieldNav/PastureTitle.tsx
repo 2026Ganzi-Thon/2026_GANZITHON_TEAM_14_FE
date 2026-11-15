@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
-import { getMyPastures } from '@/api/pastures';
+import { getMyPastures, getPasturePreview } from '@/api/pastures';
 import type { PastureSummary } from '@/api/types';
 import { BottomSheet } from '@/shared/ui/BottomSheet';
 
@@ -49,6 +49,7 @@ function PastureSheet({
     const navigate = useNavigate();
     const [pastures, setPastures] = useState<PastureSummary[] | null>(null);
     const [failed, setFailed] = useState(false);
+    const [sheepCounts, setSheepCounts] = useState<Record<string, number>>({});
 
     // 열 때마다 새로 불러온다: 다른 기기에서 들판에 합류했을 수 있다
     useEffect(() => {
@@ -57,6 +58,15 @@ function PastureSheet({
             .then((list) => {
                 setPastures(list);
                 setFailed(false);
+                // shortcut: 목록에 양 수가 없어 들판마다 미리보기로 센다, BE가 sheepCount를 주면 교체
+                // 실패한 들판은 문구만 빼고 보여 준다
+                list.forEach(({ pastureId: id }) =>
+                    getPasturePreview(id)
+                        .then(({ sheep }) =>
+                            setSheepCounts((counts) => ({ ...counts, [id]: sheep.length })),
+                        )
+                        .catch(() => {}),
+                );
             })
             .catch(() => setFailed(true));
     }, [open]);
@@ -78,19 +88,28 @@ function PastureSheet({
                 </p>
             )}
 
-            {/* shortcut: 서버 목록에 양 수가 없어 Figma의 '{n}마리의 양이 함께 있어요'를 뺐다. BE에 sheepCount 요청 */}
             <ul className="mt-5 flex max-h-[40dvh] flex-col gap-2 overflow-y-auto">
                 {pastures?.map((pasture) => {
                     const current = pasture.pastureId === pastureId;
+                    const count = sheepCounts[pasture.pastureId];
                     return (
                         <li key={pasture.pastureId}>
                             <button
                                 type="button"
                                 onClick={() => select(pasture.pastureId)}
                                 aria-current={current ? 'page' : undefined}
-                                className={`flex h-[60px] w-full items-center gap-3 rounded-2xl border px-4 text-left text-sm leading-[19.5px] font-semibold text-black ${current ? 'border-primary bg-[rgba(232,220,203,0.45)]' : 'border-line bg-cream'}`}
+                                className={`flex min-h-[60px] w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-left leading-[19.5px] ${current ? 'border-primary bg-[rgba(232,220,203,0.45)]' : 'border-line bg-cream'}`}
                             >
-                                <span className="min-w-0 flex-1 truncate">{pasture.name}</span>
+                                <span className="flex min-w-0 flex-1 flex-col">
+                                    <span className="truncate text-sm font-semibold text-black">
+                                        {pasture.name}
+                                    </span>
+                                    {count !== undefined && (
+                                        <span className="text-xs text-[#767676]">
+                                            {count}마리의 양이 함께 있어요
+                                        </span>
+                                    )}
+                                </span>
                                 {current && (
                                     <img
                                         src="/assets/icon-selected.svg"

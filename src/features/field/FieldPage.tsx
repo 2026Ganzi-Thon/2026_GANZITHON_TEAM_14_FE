@@ -5,9 +5,11 @@ import { toApiError } from '@/api/errors';
 import { getPasture } from '@/api/pastures';
 import { patSheep, wearScarf } from '@/api/sheep';
 import type { Pasture, PastureSheep, WoolColor } from '@/api/types';
+import { DemoPanel } from '@/features/demo/DemoPanel';
 import { FieldScreen } from '@/features/field/FieldScreen';
 import { fixtureFor, isFixtureName, type FixtureName } from '@/features/field/fixtures';
 import { WelcomeModal } from '@/features/field/WelcomeModal';
+import { ReachOutSheet } from '@/features/reachOut/ReachOutSheet';
 
 const NOTICE_MS = 3000;
 const PAT_MS = 900;
@@ -54,6 +56,10 @@ function FieldContent({
     const [busy, setBusy] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
     const [welcomeClosed, setWelcomeClosed] = useState(false);
+    // 다가가기 시트를 연 친구. id로 둬서 목도리를 보낸 뒤 바뀐 값이 시트에 바로 보이게 한다
+    const [reachOutId, setReachOutId] = useState<number | null>(null);
+    const [searchParams] = useSearchParams();
+    const isDemo = searchParams.get('demo') === '1';
 
     // 앱으로 다시 돌아오면(탭 전환 등) 거리가 바뀌었을 수 있어 다시 불러온다.
     // 실패하면 보던 화면을 그대로 둔다.
@@ -101,6 +107,15 @@ function FieldContent({
                   }
                 : current,
         );
+
+    /** 데모 되감기·목도리 보내기 결과를 그 양에만 반영한다 */
+    const updateSheep = (sheepId: number, patch: Partial<PastureSheep>) =>
+        setPasture((current) => ({
+            ...current,
+            sheep: current.sheep.map((item) =>
+                item.id === sheepId ? { ...item, ...patch } : item,
+            ),
+        }));
 
     const pat = async () => {
         if (!mine || patting) return;
@@ -154,9 +169,20 @@ function FieldContent({
                 patting={patting}
                 notice={notice}
                 onPat={pat}
-                // 다가가기 시트는 FE-B가 만든다 (13번 이슈). 연결 전까지는 준비 중이라고 알려 준다.
-                onReachOut={() => setNotice('다가가기는 준비 중이에요')}
+                onReachOut={({ id }) => setReachOutId(id)}
+                onMineChange={updateMine}
             />
+            <ReachOutSheet
+                sheep={pasture.sheep.find(({ id }) => id === reachOutId) ?? null}
+                onClose={() => setReachOutId(null)}
+                onScarfSent={(sheepId) => updateSheep(sheepId, { sentScarfToday: true })}
+            />
+            {isDemo && (
+                <DemoPanel
+                    sheep={pasture.sheep}
+                    onRewound={(sheepId, distance) => updateSheep(sheepId, { distance })}
+                />
+            )}
             {showWelcome && mine && (
                 <WelcomeModal
                     scarves={pasture.myScarves}
