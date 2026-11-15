@@ -4,8 +4,7 @@ import { useParams } from 'react-router';
 import { ERROR_CODE, toApiError } from '@/api/errors';
 import { getPasture } from '@/api/pastures';
 import type { Pasture } from '@/api/types';
-import { FieldTabBar } from '@/features/fieldNav/FieldTabBar';
-import { PastureTitle } from '@/features/fieldNav/PastureTitle';
+import { FieldPage } from '@/features/field/FieldPage';
 import { InviteLanding } from '@/features/invite/InviteLanding';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { PagePlaceholder } from '@/pages/PagePlaceholder';
@@ -64,13 +63,10 @@ export function PasturePage() {
                 </PagePlaceholder>
             );
         case 'member':
-            // TODO(FE-A): 들판 메인 화면. 위 제목과 아래 탭바는 FE-B 컴포넌트를 그대로 붙인다
-            return (
-                <main className="relative mx-auto min-h-dvh max-w-[393px] bg-cream px-6 pt-8">
-                    <PastureTitle pastureId={pastureId} name={result?.pasture?.name ?? ''} />
-                    <FieldTabBar pastureId={pastureId} />
-                </main>
-            );
+            // 들판 메인(FE-A). 위 제목과 아래 탭바(FE-B fieldNav)는 FieldScreen 안에서 붙인다
+            return result?.pasture ? (
+                <FieldPage pastureId={pastureId} pasture={result.pasture} />
+            ) : null;
         default:
             return <main className="min-h-dvh bg-cream" />;
     }
