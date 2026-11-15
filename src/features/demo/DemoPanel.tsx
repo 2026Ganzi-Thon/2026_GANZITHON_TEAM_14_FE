@@ -73,7 +73,9 @@ export function DemoPanel({
 
             <label className="mt-2 flex items-center gap-2">
                 <span className="shrink-0">키</span>
+                {/* 부스에서 화면에 키가 보이지 않게 가린다. 키가 있으면 아무 양이나 되감을 수 있다 */}
                 <input
+                    type="password"
                     value={demoKey}
                     onChange={(event) => {
                         setDemoKey(event.target.value);
